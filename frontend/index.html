@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Smart Waste Classifier</title>
+
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+</head>
+
+<body>
+
+    <header class="navbar">
+
+        <div class="brand">
+            Smart Waste Classifier
+        </div>
+
+        <nav>
+
+            <a
+                href="index.html"
+                class="active"
+            >
+                Dashboard
+            </a>
+
+            <a href="predict.html">
+                Predict
+            </a>
+
+            <a href="history.html">
+                History
+            </a>
+
+        </nav>
+
+    </header>
+
+    <main class="container">
+
+        <section class="hero">
+
+            <div>
+
+                <p class="eyebrow">
+                    AI-POWERED RECYCLING
+                </p>
+
+                <h1>
+                    Classify waste and get smart
+                    recycling guidance
+                </h1>
+
+                <p class="hero-text">
+                    Upload an image, identify the waste type,
+                    and receive a useful recycling recommendation.
+                </p>
+
+                <a
+                    class="primary-button"
+                    href="predict.html"
+                >
+                    Start Classification
+                </a>
+
+            </div>
+
+        </section>
+
+        <section>
+
+            <div class="section-heading">
+
+                <div>
+
+                    <p class="eyebrow">
+                        DASHBOARD
+                    </p>
+
+                    <h2>
+                        System Overview
+                    </h2>
+
+                </div>
+
+                <button
+                    class="secondary-button"
+                    id="refreshButton"
+                    type="button"
+                >
+                    Refresh
+                </button>
+
+            </div>
+
+            <div class="stats-grid">
+
+                <article class="stat-card">
+
+                    <p class="stat-label">
+                        Total Scans
+                    </p>
+
+                    <h3 id="totalScans">
+                        0
+                    </h3>
+
+                </article>
+
+                <article class="stat-card">
+
+                    <p class="stat-label">
+                        Most Detected Waste
+                    </p>
+
+                    <h3 id="mostDetectedClass">
+                        No data
+                    </h3>
+
+                </article>
+
+                <article class="stat-card">
+
+                    <p class="stat-label">
+                        Average Confidence
+                    </p>
+
+                    <h3 id="averageConfidence">
+                        0%
+                    </h3>
+
+                </article>
+
+                <article class="stat-card">
+
+                    <p class="stat-label">
+                        Waste Categories
+                    </p>
+
+                    <h3 id="wasteCategories">
+    0
+                    </h3>
+
+                </article>
+
+            </div>
+
+        </section>
+
+        <section class="class-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <p class="eyebrow">
+                        CATEGORY COUNTS
+                    </p>
+
+                    <h2>
+                        Detected Waste Types
+                    </h2>
+
+                </div>
+
+            </div>
+
+            <div
+                class="class-counts"
+                id="classCounts"
+            >
+
+                <p class="empty-message">
+                    No prediction data available.
+                </p>
+
+            </div>
+
+        </section>
+
+        <section class="connection-card">
+
+            <div class="connection-content">
+
+                <div class="connection-text">
+
+                    <p class="eyebrow">
+                        SYSTEM CONNECTION
+                    </p>
+
+                    <h2>
+                        System Connection
+                    </h2>
+
+                    <p
+                        id="connectionText"
+                        class="connection-description"
+                    >
+                        Checking backend connection...
+                    </p>
+
+                </div>
+
+                <span
+                    id="backendStatus"
+                    class="status-badge status-checking"
+                >
+                    Checking
+                </span>
+
+            </div>
+
+        </section>
+
+        <section class="charts-section">
+
+            <div class="chart-card">
+
+                <div class="chart-header">
+
+                    <div>
+
+                        <p class="eyebrow">
+                            CATEGORY ANALYTICS
+                        </p>
+
+                        <h2>
+                            Waste Distribution
+                        </h2>
+
+                    </div>
+
+                </div>
+
+                <div class="chart-container">
+
+                    <canvas id="categoryChart"></canvas>
+
+                </div>
+
+            </div>
+
+            <div class="chart-card">
+
+                <div class="chart-header">
+
+                    <div>
+
+                        <p class="eyebrow">
+                            CATEGORY ANALYTICS
+                        </p>
+
+                        <h2>
+                            Category Counts
+                        </h2>
+
+                    </div>
+
+                </div>
+
+                <div class="chart-container">
+
+                    <canvas id="countChart"></canvas>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/dashboard.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,31 @@
+# Virtual Environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# Environment variables
+.env
+
+*.keras
+*.h5
+
+!model_training/best_custom_cnn_finetuned.keras
+
+# Dataset
+dataset/
+dataset_backup/
+
+# Uploads
+backend/uploads/
+
+# Logs
+*.log
+*.db

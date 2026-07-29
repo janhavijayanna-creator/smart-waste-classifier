@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Predict Waste</title>
+
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+
+</head>
+
+<body>
+
+<header class="navbar">
+
+    <div class="brand">
+        Smart Waste Classifier
+    </div>
+
+    <nav>
+
+        <a href="index.html">
+            Dashboard
+        </a>
+
+        <a
+            href="predict.html"
+            class="active"
+        >
+            Predict
+        </a>
+
+        <a href="history.html">
+            History
+        </a>
+
+    </nav>
+
+</header>
+
+
+<main class="container">
+
+<section class="section-heading">
+
+<div>
+
+<p class="eyebrow">
+AI PREDICTION
+</p>
+
+<h2>
+Upload Waste Image
+</h2>
+
+</div>
+
+</section>
+
+
+<div class="predict-layout">
+
+<div class="upload-card">
+
+<img
+    id="previewImage"
+    src="https://placehold.co/500x350?text=Upload+Image"
+    alt="Preview"
+>
+
+<input
+    type="file"
+    id="imageInput"
+    accept="image/*"
+>
+
+<!-- Camera Buttons -->
+<div class="camera-section">
+
+    <button
+        id="openCameraBtn"
+        type="button"
+    >
+        📷 Open Camera
+    </button>
+
+    <button
+        id="captureBtn"
+        type="button"
+        style="display:none;"
+    >
+        📸 Capture
+    </button>
+
+    <button
+        id="closeCameraBtn"
+        type="button"
+        style="display:none;"
+    >
+        ❌ Close Camera
+    </button>
+
+</div>
+
+<!-- Camera Preview -->
+<div class="camera-container">
+
+    <video
+        id="camera"
+        autoplay
+        playsinline
+        style="display:none;"
+    ></video>
+
+    <canvas
+        id="canvas"
+        style="display:none;"
+    ></canvas>
+
+</div>
+
+<button
+    id="predictButton"
+    class="primary-button"
+>
+    Predict Waste
+</button>
+
+</div>
+
+
+<div class="result-card">
+
+<h3>
+Prediction
+</h3>
+
+<p id="prediction">
+—
+</p>
+
+
+<h3>
+Confidence
+</h3>
+
+<div class="progress">
+
+<div
+id="progressBar"
+class="progress-fill">
+</div>
+
+</div>
+
+<p id="confidence">
+0%
+</p>
+
+
+<h3>
+Recommendation
+</h3>
+
+<p id="recommendation">
+Upload an image to begin.
+</p>
+
+
+<h3>
+Top Predictions
+</h3>
+
+<div id="topPredictions">
+
+<p>No prediction yet.</p>
+
+</div>
+
+</div>
+
+</div>
+
+</main>
+
+<script src="js/predict.js"></script>
+
+</body>
+
+</html>
