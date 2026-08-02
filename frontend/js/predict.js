@@ -1,5 +1,10 @@
 const API_URL = "http://127.0.0.1:8000";
 
+
+/* =========================================================
+   PAGE ELEMENTS
+========================================================= */
+
 const imageInput =
     document.getElementById("imageInput");
 
@@ -25,7 +30,9 @@ const progressBar =
     document.getElementById("progressBar");
 
 
-/* Camera Elements */
+/* =========================================================
+   CAMERA ELEMENTS
+========================================================= */
 
 const openCameraBtn =
     document.getElementById("openCameraBtn");
@@ -43,220 +50,510 @@ const canvas =
     document.getElementById("canvas");
 
 
+/* =========================================================
+   INTERACTIVE UI ELEMENTS
+========================================================= */
+
+const dropZone =
+    document.getElementById("dropZone");
+
+const previewOverlay =
+    document.getElementById("previewOverlay");
+
+const uploadMessage =
+    document.getElementById("uploadMessage");
+
+const resultCard =
+    document.querySelector(".result-card");
+
+const resultIcon =
+    document.getElementById("resultIcon");
+
+
+/* =========================================================
+   STATE
+========================================================= */
+
 let selectedFile = null;
 let cameraStream = null;
+let previewObjectUrl = null;
 
 
-/* =========================
-   FILE UPLOAD
-========================= */
+/* =========================================================
+   DRAG AND DROP
+========================================================= */
 
-imageInput.addEventListener(
-    "change",
-    (event) => {
+if (dropZone) {
+    [
+        "dragenter",
+        "dragover"
+    ].forEach(eventName => {
+        dropZone.addEventListener(
+            eventName,
+            event => {
+                event.preventDefault();
+                event.stopPropagation();
 
-        selectedFile =
-            event.target.files[0];
+                dropZone.classList.add(
+                    "drag-over"
+                );
+            }
+        );
+    });
 
-        if (!selectedFile) {
-            return;
+    [
+        "dragleave",
+        "drop"
+    ].forEach(eventName => {
+        dropZone.addEventListener(
+            eventName,
+            event => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                dropZone.classList.remove(
+                    "drag-over"
+                );
+            }
+        );
+    });
+
+    dropZone.addEventListener(
+        "drop",
+        event => {
+            const files =
+                event.dataTransfer.files;
+
+            if (!files || files.length === 0) {
+                return;
+            }
+
+            handleSelectedFile(
+                files[0]
+            );
         }
+    );
+}
 
-        previewImage.src =
-            URL.createObjectURL(selectedFile);
 
-        closeCamera();
+/* =========================================================
+   FILE INPUT
+========================================================= */
+
+if (imageInput) {
+    imageInput.addEventListener(
+        "change",
+        event => {
+            handleSelectedFile(
+                event.target.files[0]
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   HANDLE SELECTED FILE
+========================================================= */
+
+function handleSelectedFile(file) {
+    if (!file) {
+        return;
     }
-);
 
-
-/* =========================
-   OPEN CAMERA
-========================= */
-
-openCameraBtn.addEventListener(
-    "click",
-    async () => {
-
-        try {
-
-            cameraStream =
-                await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: "environment"
-                    },
-                    audio: false
-                });
-
-            camera.srcObject =
-                cameraStream;
-
-            camera.style.display =
-                "block";
-
-            previewImage.style.display =
-                "none";
-
-            openCameraBtn.style.display =
-                "none";
-
-            captureBtn.style.display =
-                "inline-block";
-
-            closeCameraBtn.style.display =
-                "inline-block";
-
-        } catch (error) {
-
-            console.error(
-                "Camera error:",
-                error
-            );
-
-            alert(
-                "Unable to open the camera. Please allow camera permission in your browser."
-            );
-        }
-    }
-);
-
-
-/* =========================
-   CAPTURE IMAGE
-========================= */
-
-captureBtn.addEventListener(
-    "click",
-    () => {
-
-        if (
-            !camera.videoWidth ||
-            !camera.videoHeight
-        ) {
-            alert(
-                "Camera is still loading. Please wait for a moment."
-            );
-
-            return;
-        }
-
-        canvas.width =
-            camera.videoWidth;
-
-        canvas.height =
-            camera.videoHeight;
-
-        const context =
-            canvas.getContext("2d");
-
-        context.drawImage(
-            camera,
-            0,
-            0,
-            canvas.width,
-            canvas.height
+    if (!file.type.startsWith("image/")) {
+        showUploadMessage(
+            "Please select a valid image file.",
+            true
         );
 
-        canvas.toBlob(
-            (blob) => {
+        return;
+    }
 
-                if (!blob) {
-                    alert(
-                        "Unable to capture the image."
-                    );
+    const maximumSize =
+        10 * 1024 * 1024;
 
-                    return;
-                }
+    if (file.size > maximumSize) {
+        showUploadMessage(
+            "Image is too large. Maximum size is 10 MB.",
+            true
+        );
 
-                selectedFile =
-                    new File(
-                        [blob],
-                        "camera-capture.jpg",
-                        {
-                            type: "image/jpeg"
-                        }
-                    );
+        return;
+    }
 
-                previewImage.src =
-                    URL.createObjectURL(blob);
+    selectedFile = file;
 
-                previewImage.style.display =
-                    "block";
-
-                closeCamera();
-
-            },
-            "image/jpeg",
-            0.95
+    if (previewObjectUrl) {
+        URL.revokeObjectURL(
+            previewObjectUrl
         );
     }
-);
 
+    previewObjectUrl =
+        URL.createObjectURL(file);
 
-/* =========================
-   CLOSE CAMERA BUTTON
-========================= */
-
-closeCameraBtn.addEventListener(
-    "click",
-    closeCamera
-);
-
-
-/* =========================
-   CLOSE CAMERA FUNCTION
-========================= */
-
-function closeCamera() {
-
-    if (cameraStream) {
-
-        cameraStream
-            .getTracks()
-            .forEach(
-                track =>
-                    track.stop()
-            );
-
-        cameraStream = null;
-    }
-
-    camera.srcObject = null;
-
-    camera.style.display =
-        "none";
+    previewImage.src =
+        previewObjectUrl;
 
     previewImage.style.display =
         "block";
 
-    openCameraBtn.style.display =
-        "inline-block";
+    resetPredictionResult();
 
-    captureBtn.style.display =
-        "none";
+    showUploadMessage(
+        "Image ready for prediction.",
+        false
+    );
 
-    closeCameraBtn.style.display =
-        "none";
+    closeCamera();
 }
 
 
-/* =========================
-   PREDICT IMAGE
-========================= */
+/* =========================================================
+   OPEN CAMERA
+========================================================= */
 
-predictButton.addEventListener(
-    "click",
-    async () => {
+if (openCameraBtn) {
+    openCameraBtn.addEventListener(
+        "click",
+        async () => {
+            try {
+                if (
+                    !navigator.mediaDevices ||
+                    !navigator.mediaDevices
+                        .getUserMedia
+                ) {
+                    throw new Error(
+                        "Camera access is not supported in this browser."
+                    );
+                }
 
-        if (!selectedFile) {
+                cameraStream =
+                    await navigator.mediaDevices
+                        .getUserMedia({
+                            video: {
+                                facingMode:
+                                    "environment"
+                            },
+                            audio: false
+                        });
 
-            alert(
-                "Please upload an image or capture one using the camera."
+                camera.srcObject =
+                    cameraStream;
+
+                camera.style.display =
+                    "block";
+
+                previewImage.style.display =
+                    "none";
+
+                openCameraBtn.style.display =
+                    "none";
+
+                captureBtn.style.display =
+                    "inline-block";
+
+                closeCameraBtn.style.display =
+                    "inline-block";
+
+                showUploadMessage(
+                    "Camera opened. Position the waste item and capture the image.",
+                    false
+                );
+
+            } catch (error) {
+                console.error(
+                    "Camera error:",
+                    error
+                );
+
+                showUploadMessage(
+                    error.message ||
+                    "Unable to open the camera. Please allow camera permission.",
+                    true
+                );
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   CAPTURE CAMERA IMAGE
+========================================================= */
+
+if (captureBtn) {
+    captureBtn.addEventListener(
+        "click",
+        () => {
+            if (
+                !camera.videoWidth ||
+                !camera.videoHeight
+            ) {
+                showUploadMessage(
+                    "Camera is still loading. Please wait a moment.",
+                    true
+                );
+
+                return;
+            }
+
+            canvas.width =
+                camera.videoWidth;
+
+            canvas.height =
+                camera.videoHeight;
+
+            const context =
+                canvas.getContext("2d");
+
+            context.drawImage(
+                camera,
+                0,
+                0,
+                canvas.width,
+                canvas.height
             );
 
-            return;
-        }
+            canvas.toBlob(
+                blob => {
+                    if (!blob) {
+                        showUploadMessage(
+                            "Unable to capture the image.",
+                            true
+                        );
 
+                        return;
+                    }
+
+                    const capturedFile =
+                        new File(
+                            [blob],
+                            "camera-capture.jpg",
+                            {
+                                type: "image/jpeg"
+                            }
+                        );
+
+                    selectedFile =
+                        capturedFile;
+
+                    if (previewObjectUrl) {
+                        URL.revokeObjectURL(
+                            previewObjectUrl
+                        );
+                    }
+
+                    previewObjectUrl =
+                        URL.createObjectURL(
+                            blob
+                        );
+
+                    previewImage.src =
+                        previewObjectUrl;
+
+                    previewImage.style.display =
+                        "block";
+
+                    resetPredictionResult();
+
+                    showUploadMessage(
+                        "Camera image captured successfully.",
+                        false
+                    );
+
+                    closeCamera();
+                },
+                "image/jpeg",
+                0.95
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   CLOSE CAMERA BUTTON
+========================================================= */
+
+if (closeCameraBtn) {
+    closeCameraBtn.addEventListener(
+        "click",
+        closeCamera
+    );
+}
+
+
+/* =========================================================
+   CLOSE CAMERA
+========================================================= */
+
+function closeCamera() {
+    if (cameraStream) {
+        cameraStream
+            .getTracks()
+            .forEach(track => {
+                track.stop();
+            });
+
+        cameraStream = null;
+    }
+
+    if (camera) {
+        camera.srcObject = null;
+        camera.style.display =
+            "none";
+    }
+
+    if (previewImage) {
+        previewImage.style.display =
+            "block";
+    }
+
+    if (openCameraBtn) {
+        openCameraBtn.style.display =
+            "inline-block";
+    }
+
+    if (captureBtn) {
+        captureBtn.style.display =
+            "none";
+    }
+
+    if (closeCameraBtn) {
+        closeCameraBtn.style.display =
+            "none";
+    }
+}
+
+
+/* =========================================================
+   PREDICT BUTTON
+========================================================= */
+
+if (predictButton) {
+    predictButton.addEventListener(
+        "click",
+        async () => {
+            if (!selectedFile) {
+                showUploadMessage(
+                    "Please upload an image or capture one using the camera.",
+                    true
+                );
+
+                return;
+            }
+
+            const token =
+                localStorage.getItem(
+                    "authToken"
+                );
+
+            if (!token) {
+                window.location.href =
+                    "login.html";
+
+                return;
+            }
+
+            setPredictingState(true);
+
+            const formData =
+                new FormData();
+
+            formData.append(
+                "file",
+                selectedFile
+            );
+
+            try {
+                const response =
+                    await fetch(
+                        `${API_URL}/predict`,
+                        {
+                            method: "POST",
+
+                            headers: {
+                                Authorization:
+                                    `Bearer ${token}`
+                            },
+
+                            body: formData
+                        }
+                    );
+
+                const data =
+                    await response.json();
+
+                if (
+                    response.status === 401
+                ) {
+                    clearStoredSession();
+
+                    window.location.href =
+                        "login.html";
+
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.error ||
+                        "Prediction failed."
+                    );
+                }
+
+                showPredictionResult(
+                    data
+                );
+
+                showUploadMessage(
+                    "Prediction completed successfully.",
+                    false
+                );
+
+            } catch (error) {
+                console.error(
+                    "Prediction error:",
+                    error
+                );
+
+                showPredictionError(
+                    error.message
+                );
+
+            } finally {
+                setPredictingState(
+                    false
+                );
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   PREDICTING STATE
+========================================================= */
+
+function setPredictingState(isPredicting) {
+    predictButton.disabled =
+        isPredicting;
+
+    predictButton.textContent =
+        isPredicting
+            ? "Predicting..."
+            : "Predict Waste";
+
+    if (previewOverlay) {
+        previewOverlay.style.display =
+            isPredicting
+                ? "flex"
+                : "none";
+    }
+
+    if (isPredicting) {
         prediction.textContent =
             "Predicting...";
 
@@ -264,150 +561,257 @@ predictButton.addEventListener(
             "--";
 
         recommendation.textContent =
-            "Please wait...";
-
-        topPredictions.innerHTML =
-            "";
+            "Please wait while the AI analyses the image.";
 
         progressBar.style.width =
             "0%";
 
-        predictButton.disabled =
-            true;
+        topPredictions.innerHTML = `
+            <p class="empty-message">
+                Analysing image...
+            </p>
+        `;
+    }
+}
 
-        predictButton.textContent =
-            "Predicting...";
 
-        const formData =
-            new FormData();
+/* =========================================================
+   SHOW PREDICTION RESULT
+========================================================= */
 
-        formData.append(
-            "file",
-            selectedFile
+function showPredictionResult(data) {
+    const predictedClass =
+        data.predicted_class ||
+        "unknown";
+
+    const confidenceValue =
+        Number(
+            data.confidence || 0
         );
 
-        try {
+    prediction.textContent =
+        formatClassName(
+            predictedClass
+        );
 
-            const response =
-                await fetch(
-                    `${API_URL}/predict`,
-                    {
-                        method: "POST",
-                        body: formData
-                    }
-                );
+    confidence.textContent =
+        `${confidenceValue.toFixed(2)}%`;
 
-            const data =
-                await response.json();
+    progressBar.style.width =
+        `${Math.min(
+            confidenceValue,
+            100
+        )}%`;
 
-            if (!response.ok) {
+    recommendation.textContent =
+        data.recommendation ||
+        "No recommendation available.";
 
-                throw new Error(
-                    data.error ||
-                    "Prediction failed."
-                );
-            }
+    renderTopPredictions(
+        data.top_predictions
+    );
 
-            prediction.textContent =
-                formatClassName(
-                    data.predicted_class
-                );
-
-            confidence.textContent =
-                `${data.confidence}%`;
-
-            progressBar.style.width =
-                `${data.confidence}%`;
-
-            recommendation.textContent =
-                data.recommendation;
-
-            topPredictions.innerHTML =
-                "";
-
-            if (
-                Array.isArray(
-                    data.top_predictions
-                )
-            ) {
-
-                data.top_predictions.forEach(
-                    item => {
-
-                        const div =
-                            document.createElement(
-                                "div"
-                            );
-
-                        div.className =
-                            "class-count-item";
-
-                        div.innerHTML = `
-                            <span class="class-name">
-                                ${formatClassName(item.class)}
-                            </span>
-
-                            <span class="class-value">
-                                ${item.confidence}%
-                            </span>
-                        `;
-
-                        topPredictions.appendChild(
-                            div
-                        );
-                    }
-                );
-
-            } else {
-
-                topPredictions.innerHTML = `
-                    <p>
-                        No top predictions available.
-                    </p>
-                `;
-            }
-
-        } catch (error) {
-
-            console.error(
-                "Prediction error:",
-                error
+    if (resultIcon) {
+        resultIcon.textContent =
+            getResultIcon(
+                predictedClass
             );
-
-            prediction.textContent =
-                "Failed";
-
-            confidence.textContent =
-                "0%";
-
-            recommendation.textContent =
-                "Unable to complete prediction.";
-
-            progressBar.style.width =
-                "0%";
-
-            alert(
-                error.message
-            );
-
-        } finally {
-
-            predictButton.disabled =
-                false;
-
-            predictButton.textContent =
-                "Predict Waste";
-        }
     }
-);
+
+    if (resultCard) {
+        resultCard.classList.add(
+            "has-result",
+            "result-updated"
+        );
+
+        window.setTimeout(
+            () => {
+                resultCard.classList.remove(
+                    "result-updated"
+                );
+            },
+            600
+        );
+    }
+}
 
 
-/* =========================
+/* =========================================================
+   SHOW PREDICTION ERROR
+========================================================= */
+
+function showPredictionError(message) {
+    prediction.textContent =
+        "Prediction Failed";
+
+    confidence.textContent =
+        "0%";
+
+    progressBar.style.width =
+        "0%";
+
+    recommendation.textContent =
+        message ||
+        "Unable to complete the prediction.";
+
+    topPredictions.innerHTML = `
+        <p class="empty-message">
+            No prediction result available.
+        </p>
+    `;
+
+    showUploadMessage(
+        message ||
+        "Unable to complete the prediction.",
+        true
+    );
+}
+
+
+/* =========================================================
+   RENDER TOP PREDICTIONS
+========================================================= */
+
+function renderTopPredictions(items) {
+    topPredictions.innerHTML =
+        "";
+
+    if (
+        !Array.isArray(items) ||
+        items.length === 0
+    ) {
+        topPredictions.innerHTML = `
+            <p class="empty-message">
+                No top predictions available.
+            </p>
+        `;
+
+        return;
+    }
+
+    items.forEach(item => {
+        const itemElement =
+            document.createElement(
+                "div"
+            );
+
+        itemElement.className =
+            "class-count-item";
+
+        const className =
+            formatClassName(
+                item.class
+            );
+
+        const itemConfidence =
+            Number(
+                item.confidence || 0
+            );
+
+        itemElement.innerHTML = `
+            <span class="class-name">
+                ${escapeHtml(
+                    className
+                )}
+            </span>
+
+            <span class="class-value">
+                ${itemConfidence.toFixed(2)}%
+            </span>
+        `;
+
+        topPredictions.appendChild(
+            itemElement
+        );
+    });
+}
+
+
+/* =========================================================
+   RESET RESULT
+========================================================= */
+
+function resetPredictionResult() {
+    prediction.textContent =
+        "—";
+
+    confidence.textContent =
+        "0%";
+
+    progressBar.style.width =
+        "0%";
+
+    recommendation.textContent =
+        "Click Predict Waste to analyse the selected image.";
+
+    topPredictions.innerHTML = `
+        <p class="empty-message">
+            No prediction yet.
+        </p>
+    `;
+
+    if (resultIcon) {
+        resultIcon.textContent =
+            "♻";
+    }
+
+    if (resultCard) {
+        resultCard.classList.remove(
+            "has-result",
+            "result-updated"
+        );
+    }
+}
+
+
+/* =========================================================
+   UPLOAD MESSAGE
+========================================================= */
+
+function showUploadMessage(
+    message,
+    isError
+) {
+    if (!uploadMessage) {
+        return;
+    }
+
+    uploadMessage.textContent =
+        message;
+
+    uploadMessage.className =
+        isError
+            ? "form-message error-message"
+            : "form-message success-message";
+}
+
+
+/* =========================================================
+   RESULT ICON
+========================================================= */
+
+function getResultIcon(value) {
+    const icons = {
+        broken_toys: "🧸",
+        cardboard: "📦",
+        glass: "🫙",
+        human: "🧍",
+        metal: "🥫",
+        paper: "📄",
+        plastic: "🧴",
+        trash: "🗑️",
+        uncertain: "❓"
+    };
+
+    return icons[value] || "♻";
+}
+
+
+/* =========================================================
    FORMAT CLASS NAME
-========================= */
+========================================================= */
 
 function formatClassName(value) {
-
     if (!value) {
         return "Unknown";
     }
@@ -425,11 +829,63 @@ function formatClassName(value) {
 }
 
 
-/* =========================
-   STOP CAMERA WHEN LEAVING
-========================= */
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(value) {
+    return String(value)
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
+}
+
+
+/* =========================================================
+   CLEAR SESSION
+========================================================= */
+
+function clearStoredSession() {
+    localStorage.removeItem(
+        "authToken"
+    );
+
+    localStorage.removeItem(
+        "authUser"
+    );
+}
+
+
+/* =========================================================
+   STOP CAMERA WHEN LEAVING PAGE
+========================================================= */
 
 window.addEventListener(
     "beforeunload",
-    closeCamera
+    () => {
+        closeCamera();
+
+        if (previewObjectUrl) {
+            URL.revokeObjectURL(
+                previewObjectUrl
+            );
+        }
+    }
 );

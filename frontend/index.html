@@ -19,93 +19,149 @@
 
 <body>
 
-    <header class="navbar">
+<header class="navbar">
 
-        <div class="brand">
-            Smart Waste Classifier
-        </div>
+    <div class="brand">
+        <span class="brand-icon">♻</span>
+        Smart Waste Classifier
+    </div>
 
-        <nav>
+    <nav>
 
-            <a
-                href="index.html"
-                class="active"
-            >
-                Dashboard
-            </a>
+        <a
+            href="index.html"
+            class="active"
+        >
+            Dashboard
+        </a>
 
-            <a href="predict.html">
-                Predict
-            </a>
+        <a href="predict.html">
+            Predict
+        </a>
 
-            <a href="history.html">
-                History
-            </a>
+        <a href="history.html">
+            History
+        </a>
 
-        </nav>
+    </nav>
 
-    </header>
+    <div class="user-nav">
 
-    <main class="container">
+        <span
+            id="navbarUserName"
+            class="user-name"
+        >
+            User
+        </span>
 
-        <section class="hero">
+        <button
+            id="logoutButton"
+            class="logout-button"
+            type="button"
+        >
+            Logout
+        </button>
 
-            <div>
+    </div>
 
-                <p class="eyebrow">
-                    AI-POWERED RECYCLING
-                </p>
+</header>
 
-                <h1>
-                    Classify waste and get smart
-                    recycling guidance
-                </h1>
 
-                <p class="hero-text">
-                    Upload an image, identify the waste type,
-                    and receive a useful recycling recommendation.
-                </p>
+<main class="container">
+
+    <section class="hero">
+
+        <div class="hero-content">
+
+            <p class="eyebrow">
+                AI-POWERED RECYCLING
+            </p>
+
+            <h1>
+                Classify waste and get smart
+                recycling guidance
+            </h1>
+
+            <p class="hero-text">
+                Upload an image or use your webcam to identify
+                waste and receive useful recycling recommendations.
+            </p>
+
+            <div class="hero-actions">
 
                 <a
-                    class="primary-button"
+                    class="primary-button hero-primary-button"
                     href="predict.html"
                 >
                     Start Classification
                 </a>
 
+                <a
+                    class="hero-secondary-button"
+                    href="history.html"
+                >
+                    View History
+                </a>
+
             </div>
 
-        </section>
+        </div>
 
-        <section>
+        <div class="hero-visual">
 
-            <div class="section-heading">
+            <div class="hero-circle hero-circle-one"></div>
+            <div class="hero-circle hero-circle-two"></div>
 
-                <div>
+            <div class="hero-recycle-icon">
+                ♻
+            </div>
 
-                    <p class="eyebrow">
-                        DASHBOARD
-                    </p>
+        </div>
 
-                    <h2>
-                        System Overview
-                    </h2>
+    </section>
 
+
+    <section class="dashboard-section">
+
+        <div class="section-heading">
+
+            <div>
+
+                <p class="eyebrow">
+                    DASHBOARD
+                </p>
+
+                <h2>
+                    System Overview
+                </h2>
+
+                <p class="section-description">
+                    Track your personal waste classification activity.
+                </p>
+
+            </div>
+
+            <button
+                class="secondary-button refresh-button"
+                id="refreshButton"
+                type="button"
+            >
+                <span id="refreshIcon">↻</span>
+                Refresh
+            </button>
+
+        </div>
+
+
+        <div class="stats-grid">
+
+            <article class="stat-card">
+
+                <div class="stat-icon stat-icon-scans">
+                    📷
                 </div>
 
-                <button
-                    class="secondary-button"
-                    id="refreshButton"
-                    type="button"
-                >
-                    Refresh
-                </button>
-
-            </div>
-
-            <div class="stats-grid">
-
-                <article class="stat-card">
+                <div>
 
                     <p class="stat-label">
                         Total Scans
@@ -115,9 +171,18 @@
                         0
                     </h3>
 
-                </article>
+                </div>
 
-                <article class="stat-card">
+            </article>
+
+
+            <article class="stat-card">
+
+                <div class="stat-icon stat-icon-detected">
+                    🗑
+                </div>
+
+                <div>
 
                     <p class="stat-label">
                         Most Detected Waste
@@ -127,9 +192,18 @@
                         No data
                     </h3>
 
-                </article>
+                </div>
 
-                <article class="stat-card">
+            </article>
+
+
+            <article class="stat-card">
+
+                <div class="stat-icon stat-icon-confidence">
+                    📈
+                </div>
+
+                <div>
 
                     <p class="stat-label">
                         Average Confidence
@@ -139,149 +213,184 @@
                         0%
                     </h3>
 
-                </article>
+                </div>
 
-                <article class="stat-card">
+            </article>
+
+
+            <article class="stat-card">
+
+                <div class="stat-icon stat-icon-categories">
+                    ♻
+                </div>
+
+                <div>
 
                     <p class="stat-label">
                         Waste Categories
                     </p>
 
                     <h3 id="wasteCategories">
-    0
+                        0
                     </h3>
-
-                </article>
-
-            </div>
-
-        </section>
-
-        <section class="class-section">
-
-            <div class="section-heading">
-
-                <div>
-
-                    <p class="eyebrow">
-                        CATEGORY COUNTS
-                    </p>
-
-                    <h2>
-                        Detected Waste Types
-                    </h2>
 
                 </div>
 
-            </div>
+            </article>
 
-            <div
-                class="class-counts"
-                id="classCounts"
-            >
+        </div>
 
-                <p class="empty-message">
-                    No prediction data available.
+    </section>
+
+
+    <section class="class-section">
+
+        <div class="section-heading">
+
+            <div>
+
+                <p class="eyebrow">
+                    CATEGORY COUNTS
+                </p>
+
+                <h2>
+                    Detected Waste Types
+                </h2>
+
+                <p class="section-description">
+                    See how many items were detected in each category.
                 </p>
 
             </div>
 
-        </section>
+        </div>
 
-        <section class="connection-card">
+        <div
+            class="class-counts"
+            id="classCounts"
+        >
 
-            <div class="connection-content">
+            <p class="empty-message">
+                No prediction data available.
+            </p>
 
-                <div class="connection-text">
+        </div>
+
+    </section>
+
+
+    <section class="connection-card">
+
+        <div class="connection-content">
+
+            <div class="connection-status-icon">
+                <span class="connection-pulse"></span>
+                ⚙
+            </div>
+
+            <div class="connection-text">
+
+                <p class="eyebrow">
+                    SYSTEM CONNECTION
+                </p>
+
+                <h2>
+                    Backend Connection
+                </h2>
+
+                <p
+                    id="connectionText"
+                    class="connection-description"
+                >
+                    Checking backend connection...
+                </p>
+
+            </div>
+
+            <span
+                id="backendStatus"
+                class="status-badge status-checking"
+            >
+                Checking
+            </span>
+
+        </div>
+
+    </section>
+
+
+    <section class="charts-section">
+
+        <article class="chart-card">
+
+            <div class="chart-header">
+
+                <div>
 
                     <p class="eyebrow">
-                        SYSTEM CONNECTION
+                        CATEGORY ANALYTICS
                     </p>
 
                     <h2>
-                        System Connection
+                        Waste Distribution
                     </h2>
-
-                    <p
-                        id="connectionText"
-                        class="connection-description"
-                    >
-                        Checking backend connection...
-                    </p>
 
                 </div>
 
-                <span
-                    id="backendStatus"
-                    class="status-badge status-checking"
-                >
-                    Checking
+                <span class="chart-icon">
+                    ◔
                 </span>
 
             </div>
 
-        </section>
+            <div class="chart-container">
 
-        <section class="charts-section">
-
-            <div class="chart-card">
-
-                <div class="chart-header">
-
-                    <div>
-
-                        <p class="eyebrow">
-                            CATEGORY ANALYTICS
-                        </p>
-
-                        <h2>
-                            Waste Distribution
-                        </h2>
-
-                    </div>
-
-                </div>
-
-                <div class="chart-container">
-
-                    <canvas id="categoryChart"></canvas>
-
-                </div>
+                <canvas id="categoryChart"></canvas>
 
             </div>
 
-            <div class="chart-card">
+        </article>
 
-                <div class="chart-header">
 
-                    <div>
+        <article class="chart-card">
 
-                        <p class="eyebrow">
-                            CATEGORY ANALYTICS
-                        </p>
+            <div class="chart-header">
 
-                        <h2>
-                            Category Counts
-                        </h2>
+                <div>
 
-                    </div>
+                    <p class="eyebrow">
+                        CATEGORY ANALYTICS
+                    </p>
 
-                </div>
-
-                <div class="chart-container">
-
-                    <canvas id="countChart"></canvas>
+                    <h2>
+                        Category Counts
+                    </h2>
 
                 </div>
+
+                <span class="chart-icon">
+                    ▥
+                </span>
 
             </div>
 
-        </section>
+            <div class="chart-container">
 
-    </main>
+                <canvas id="countChart"></canvas>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/dashboard.js"></script>
+            </div>
+
+        </article>
+
+    </section>
+
+</main>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="js/session.js"></script>
+<script src="js/dashboard.js"></script>
 
 </body>
 

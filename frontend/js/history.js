@@ -1,298 +1,849 @@
-const API_BASE = "http://127.0.0.1:8000";
+const API_URL = "http://127.0.0.1:8000";
 
-let historyData = [];
+const historyContainer =
+    document.getElementById("historyContainer");
+
+const emptyHistory =
+    document.getElementById("emptyHistory");
+
+const clearHistoryButton =
+    document.getElementById("clearHistoryButton");
+
+const exportCsvButton =
+    document.getElementById("exportCsvButton");
+
+const historySearch =
+    document.getElementById("historySearch");
+
+let allHistory = [];
+
+
+/* =========================
+   LOAD HISTORY
+========================= */
 
 async function loadHistory() {
-    const table = document.getElementById("historyTable");
 
-    table.innerHTML = `
-        <tr>
-            <td colspan="5">Loading...</td>
-        </tr>
+    const token =
+        localStorage.getItem("authToken");
+
+    if (!token) {
+        alert("Please log in first.");
+
+        window.location.href =
+            "login.html";
+
+        return;
+    }
+
+    historyContainer.innerHTML = `
+        <div class="history-loading">
+            Loading prediction history...
+        </div>
     `;
 
     try {
-        const response = await fetch(`${API_BASE}/history`);
 
-        if (!response.ok) {
-            throw new Error(`HTTP error: ${response.status}`);
+        const response = await fetch(
+            `${API_URL}/history`,
+            {
+                method: "GET",
+
+                headers: {
+                    Authorization:
+                        `Bearer ${token}`
+                }
+            }
+        );
+
+        const data =
+            await response.json();
+
+
+        /* LOGIN EXPIRED */
+
+        if (response.status === 401) {
+
+            localStorage.removeItem(
+                "authToken"
+            );
+
+            localStorage.removeItem(
+                "authUser"
+            );
+
+            alert(
+                "Your login session has expired. Please log in again."
+            );
+
+            window.location.href =
+                "login.html";
+
+            return;
         }
 
-        const data = await response.json();
 
-        // Backend returns: { "history": [...] }
-        historyData = Array.isArray(data.history)
-            ? data.history
-            : [];
+        if (!response.ok) {
+            throw new Error(
+                data.error ||
+                "Unable to load history."
+            );
+        }
 
-        renderTable(historyData);
 
-    } catch (error) {
-        console.error("History loading error:", error);
+        /*
+        Backend may return either:
 
-        table.innerHTML = `
-            <tr>
-                <td colspan="5">
-                    Failed to load history.
-                </td>
-            </tr>
+        [
+           {...}
+        ]
+
+        OR
+
+        {
+           history: [...]
+        }
+        */
+
+        if (Array.isArray(data)) {
+
+            allHistory = data;
+
+        } else if (
+            Array.isArray(data.history)
+        ) {
+
+            allHistory =
+                data.history;
+
+        } else {
+
+            allHistory = [];
+
+        }
+
+
+        renderHistory(allHistory);
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "History error:",
+            error
+        );
+
+        historyContainer.innerHTML = `
+            <div class="history-loading">
+                Unable to load history.
+            </div>
         `;
     }
 }
 
 
-function renderTable(data) {
-    const table = document.getElementById("historyTable");
+/* =========================
+   RENDER HISTORY
+========================= */
 
-    if (!Array.isArray(data) || data.length === 0) {
-        table.innerHTML = `
-            <tr>
-                <td colspan="5">
-                    No prediction history found.
-                </td>
-            </tr>
-        `;
+function renderHistory(history) {
+
+    historyContainer.innerHTML = "";
+
+
+    /* NO HISTORY */
+
+    if (
+        !history ||
+        history.length === 0
+    ) {
+
+        emptyHistory.style.display =
+            "block";
+
+        clearHistoryButton.disabled =
+            true;
+
+        exportCsvButton.disabled =
+            true;
 
         return;
     }
 
-    table.innerHTML = "";
 
-    data.forEach(item => {
-        const row = document.createElement("tr");
+    emptyHistory.style.display =
+        "none";
 
-        const confidence = Number(item.confidence || 0);
+    clearHistoryButton.disabled =
+        false;
 
-        const formattedDate = formatDate(item.created_at);
+    exportCsvButton.disabled =
+        false;
+
+
+    history.forEach(item => {
+
+        const row =
+            document.createElement("div");
+
+        row.className =
+            "history-row";
+
+
+        const fileName =
+            item.file_name ||
+            item.filename ||
+            "Uploaded image";
+
+
+        const predictedClass =
+            item.predicted_class ||
+            item.prediction ||
+            "Unknown";
+
+
+        const confidence =
+            Number(
+                item.confidence || 0
+            );
+
+
+        const date =
+            formatDate(
+                item.created_at ||
+                item.timestamp ||
+                item.date
+            );
+
 
         row.innerHTML = `
-            <td>${escapeHTML(item.file_name || "Unknown file")}</td>
 
-            <td>
-                ${escapeHTML(formatClassName(
-                    item.predicted_class || "Unknown"
-                ))}
-            </td>
+            <div class="history-file">
 
-            <td>${confidence.toFixed(2)}%</td>
+                <div class="history-file-icon">
+                    ♻
+                </div>
 
-            <td>${formattedDate}</td>
+                <span>
+                    ${escapeHtml(fileName)}
+                </span>
 
-            <td>
+            </div>
+
+
+            <div class="history-prediction">
+
+                <span class="prediction-badge">
+
+                    ${escapeHtml(
+                        formatClassName(
+                            predictedClass
+                        )
+                    )}
+
+                </span>
+
+            </div>
+
+
+            <div class="history-confidence">
+
+                <strong>
+                    ${confidence.toFixed(2)}%
+                </strong>
+
+                <div class="mini-progress">
+
+                    <div
+                        class="mini-progress-fill"
+                        style="width:
+                        ${Math.min(
+                            confidence,
+                            100
+                        )}%"
+                    >
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="history-date">
+
+                ${escapeHtml(date)}
+
+            </div>
+
+
+            <div class="history-action">
+
                 <button
-                    class="delete-button"
-                    onclick="deletePrediction(${item.id})"
+                    class="delete-history-button"
+                    type="button"
+                    data-id="${item.id}"
                 >
                     Delete
                 </button>
-            </td>
+
+            </div>
         `;
 
-        table.appendChild(row);
-    });
-}
 
-
-async function deletePrediction(id) {
-    const confirmed = confirm(
-        "Are you sure you want to delete this prediction?"
-    );
-
-    if (!confirmed) {
-        return;
-    }
-
-    try {
-        const response = await fetch(
-            `${API_BASE}/history/${id}`,
-            {
-                method: "DELETE"
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error(
-                `Delete failed: ${response.status}`
-            );
-        }
-
-        await loadHistory();
-
-    } catch (error) {
-        console.error("Delete error:", error);
-
-        alert("Unable to delete the prediction.");
-    }
-}
-
-
-async function clearHistory() {
-    if (historyData.length === 0) {
-        alert("Prediction history is already empty.");
-        return;
-    }
-
-    const confirmed = confirm(
-        "Are you sure you want to clear the entire history?"
-    );
-
-    if (!confirmed) {
-        return;
-    }
-
-    try {
-        const response = await fetch(
-            `${API_BASE}/history`,
-            {
-                method: "DELETE"
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error(
-                `Clear history failed: ${response.status}`
-            );
-        }
-
-        await loadHistory();
-
-    } catch (error) {
-        console.error("Clear history error:", error);
-
-        alert("Unable to clear prediction history.");
-    }
-}
-
-
-function exportCSV() {
-    if (historyData.length === 0) {
-        alert("There is no history to export.");
-        return;
-    }
-
-    const headings = [
-        "File Name",
-        "Prediction",
-        "Confidence",
-        "Date"
-    ];
-
-    const rows = historyData.map(item => [
-        item.file_name || "",
-        item.predicted_class || "",
-        Number(item.confidence || 0).toFixed(2),
-        item.created_at || ""
-    ]);
-
-    const csvContent = [
-        headings,
-        ...rows
-    ]
-        .map(row =>
+        historyContainer.appendChild(
             row
-                .map(value => escapeCSV(value))
-                .join(",")
-        )
-        .join("\n");
-
-    const blob = new Blob(
-        [csvContent],
-        {
-            type: "text/csv;charset=utf-8;"
-        }
-    );
-
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = "prediction_history.csv";
-
-    document.body.appendChild(link);
-
-    link.click();
-
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(url);
-}
-
-
-function searchHistory(event) {
-    const searchText =
-        event.target.value.trim().toLowerCase();
-
-    const filteredHistory = historyData.filter(item => {
-        const fileName =
-            String(item.file_name || "").toLowerCase();
-
-        const predictedClass =
-            String(item.predicted_class || "").toLowerCase();
-
-        return (
-            fileName.includes(searchText) ||
-            predictedClass.includes(searchText)
         );
+
     });
 
-    renderTable(filteredHistory);
+
+    /* DELETE BUTTON EVENTS */
+
+    document
+        .querySelectorAll(
+            ".delete-history-button"
+        )
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                function () {
+
+                    const id =
+                        this.dataset.id;
+
+                    deleteHistoryItem(
+                        id
+                    );
+                }
+            );
+
+        });
 }
 
 
-function formatDate(dateValue) {
-    if (!dateValue) {
+/* =========================
+   DELETE ONE ITEM
+========================= */
+
+async function deleteHistoryItem(id) {
+
+    if (!id) {
+        alert(
+            "Unable to find this prediction."
+        );
+
+        return;
+    }
+
+
+    const confirmed =
+        confirm(
+            "Delete this prediction?"
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    const token =
+        localStorage.getItem(
+            "authToken"
+        );
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/history/${id}`,
+                {
+                    method:
+                        "DELETE",
+
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`
+                    }
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            response.status === 401
+        ) {
+
+            logoutUser();
+
+            return;
+        }
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.error ||
+                "Unable to delete prediction."
+            );
+        }
+
+
+        /* REMOVE LOCALLY */
+
+        allHistory =
+            allHistory.filter(
+                item =>
+                    String(item.id) !==
+                    String(id)
+            );
+
+
+        renderHistory(
+            allHistory
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Delete error:",
+            error
+        );
+
+        alert(
+            error.message
+        );
+    }
+}
+
+
+/* =========================
+   CLEAR ALL HISTORY
+========================= */
+
+clearHistoryButton.addEventListener(
+    "click",
+    async () => {
+
+        if (
+            allHistory.length === 0
+        ) {
+            return;
+        }
+
+
+        const confirmed =
+            confirm(
+                "Are you sure you want to clear your complete prediction history?"
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        const token =
+            localStorage.getItem(
+                "authToken"
+            );
+
+
+        clearHistoryButton.disabled =
+            true;
+
+        clearHistoryButton.textContent =
+            "Clearing...";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_URL}/history`,
+                    {
+                        method:
+                            "DELETE",
+
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`
+                        }
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (
+                response.status === 401
+            ) {
+
+                logoutUser();
+
+                return;
+            }
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    "Unable to clear history."
+                );
+            }
+
+
+            allHistory = [];
+
+
+            renderHistory(
+                allHistory
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Clear history error:",
+                error
+            );
+
+            alert(
+                error.message
+            );
+
+        }
+
+        finally {
+
+            clearHistoryButton.textContent =
+                "Clear History";
+
+        }
+    }
+);
+
+
+/* =========================
+   SEARCH HISTORY
+========================= */
+
+historySearch.addEventListener(
+    "input",
+    function () {
+
+        const searchValue =
+            this.value
+                .toLowerCase()
+                .trim();
+
+
+        if (!searchValue) {
+
+            renderHistory(
+                allHistory
+            );
+
+            return;
+        }
+
+
+        const filtered =
+            allHistory.filter(
+                item => {
+
+                    const prediction =
+                        (
+                            item.predicted_class ||
+                            item.prediction ||
+                            ""
+                        )
+                            .toLowerCase();
+
+
+                    const file =
+                        (
+                            item.file_name ||
+                            item.filename ||
+                            ""
+                        )
+                            .toLowerCase();
+
+
+                    return (
+                        prediction.includes(
+                            searchValue
+                        ) ||
+                        file.includes(
+                            searchValue
+                        )
+                    );
+                }
+            );
+
+
+        renderHistory(
+            filtered
+        );
+    }
+);
+
+
+/* =========================
+   EXPORT CSV
+========================= */
+
+exportCsvButton.addEventListener(
+    "click",
+    function () {
+
+        if (
+            allHistory.length === 0
+        ) {
+
+            alert(
+                "There is no history to export."
+            );
+
+            return;
+        }
+
+
+        let csv =
+            "File,Prediction,Confidence,Date\n";
+
+
+        allHistory.forEach(
+            item => {
+
+                const file =
+                    item.file_name ||
+                    item.filename ||
+                    "Uploaded image";
+
+
+                const prediction =
+                    item.predicted_class ||
+                    item.prediction ||
+                    "Unknown";
+
+
+                const confidence =
+                    item.confidence || 0;
+
+
+                const date =
+                    formatDate(
+                        item.created_at ||
+                        item.timestamp ||
+                        item.date
+                    );
+
+
+                csv +=
+                    `"${cleanCsv(file)}",` +
+                    `"${cleanCsv(prediction)}",` +
+                    `"${confidence}%",` +
+                    `"${cleanCsv(date)}"\n`;
+
+            }
+        );
+
+
+        const blob =
+            new Blob(
+                [csv],
+                {
+                    type:
+                        "text/csv;charset=utf-8;"
+                }
+            );
+
+
+        const url =
+            URL.createObjectURL(
+                blob
+            );
+
+
+        const link =
+            document.createElement(
+                "a"
+            );
+
+
+        link.href = url;
+
+        link.download =
+            "waste_prediction_history.csv";
+
+
+        document.body.appendChild(
+            link
+        );
+
+
+        link.click();
+
+
+        document.body.removeChild(
+            link
+        );
+
+
+        URL.revokeObjectURL(
+            url
+        );
+    }
+);
+
+
+/* =========================
+   FORMAT CLASS NAME
+========================= */
+
+function formatClassName(value) {
+
+    if (!value) {
         return "Unknown";
     }
 
-    const date = new Date(dateValue);
 
-    if (Number.isNaN(date.getTime())) {
-        return dateValue;
+    return String(value)
+
+        .replaceAll(
+            "_",
+            " "
+        )
+
+        .replace(
+            /\b\w/g,
+            letter =>
+                letter.toUpperCase()
+        );
+}
+
+
+/* =========================
+   FORMAT DATE
+========================= */
+
+function formatDate(value) {
+
+    if (!value) {
+        return "—";
     }
+
+
+    const date =
+        new Date(value);
+
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+
+        return String(value);
+    }
+
 
     return date.toLocaleString();
 }
 
 
-function formatClassName(className) {
-    return String(className)
-        .replaceAll("_", " ")
-        .replace(/\b\w/g, letter =>
-            letter.toUpperCase()
+/* =========================
+   ESCAPE HTML
+========================= */
+
+function escapeHtml(value) {
+
+    return String(value)
+
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+
+        .replaceAll(
+            "'",
+            "&#039;"
         );
 }
 
 
-function escapeCSV(value) {
-    const text = String(value);
+/* =========================
+   CSV CLEANER
+========================= */
 
-    return `"${text.replaceAll('"', '""')}"`;
+function cleanCsv(value) {
+
+    return String(value)
+        .replaceAll(
+            '"',
+            '""'
+        );
 }
 
 
-function escapeHTML(value) {
-    const element = document.createElement("div");
+/* =========================
+   LOGOUT IF TOKEN EXPIRES
+========================= */
 
-    element.textContent = String(value);
+function logoutUser() {
 
-    return element.innerHTML;
+    localStorage.removeItem(
+        "authToken"
+    );
+
+    localStorage.removeItem(
+        "authUser"
+    );
+
+
+    alert(
+        "Your session has expired. Please log in again."
+    );
+
+
+    window.location.href =
+        "login.html";
 }
 
 
-document
-    .getElementById("searchInput")
-    .addEventListener("input", searchHistory);
+/* =========================
+   START
+========================= */
 
-
-document
-    .getElementById("clearButton")
-    .addEventListener("click", clearHistory);
-
-
-document
-    .getElementById("exportButton")
-    .addEventListener("click", exportCSV);
-
-
-loadHistory();
+document.addEventListener(
+    "DOMContentLoaded",
+    loadHistory
+);

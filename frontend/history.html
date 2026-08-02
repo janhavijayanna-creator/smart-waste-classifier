@@ -2,153 +2,226 @@
 <html lang="en">
 
 <head>
+    <meta charset="UTF-8">
 
-<meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0">
+    <title>Prediction History</title>
 
-<title>Prediction History</title>
-
-<link
-rel="stylesheet"
-href="css/style.css">
-
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
 </head>
 
 <body>
 
+<!-- =========================
+     NAVBAR
+========================= -->
+
 <header class="navbar">
 
-<div class="brand">
+    <div class="brand">
+        Smart Waste Classifier
+    </div>
 
-Smart Waste Classifier
+    <nav>
+        <a href="index.html">
+            Dashboard
+        </a>
 
-</div>
+        <a href="predict.html">
+            Predict
+        </a>
 
-<nav>
+        <a
+            href="history.html"
+            class="active"
+        >
+            History
+        </a>
+    </nav>
 
-<a href="index.html">
+    <!-- USER AREA -->
 
-Dashboard
+    <div class="user-area">
 
-</a>
+        <span
+            id="userName"
+            class="user-name"
+        >
+            User
+        </span>
 
-<a href="predict.html">
+        <button
+            id="logoutButton"
+            class="logout-button"
+            type="button"
+        >
+            Logout
+        </button>
 
-Predict
-
-</a>
-
-<a
-href="history.html"
-class="active">
-
-History
-
-</a>
-
-</nav>
+    </div>
 
 </header>
 
+
+<!-- =========================
+     MAIN CONTENT
+========================= -->
+
 <main class="container">
 
-<div class="section-heading">
+    <section class="section-heading">
 
-<div>
+        <div>
 
-<p class="eyebrow">
+            <p class="eyebrow">
+                PREDICTION HISTORY
+            </p>
 
-PREDICTION HISTORY
+            <h2>
+                Saved Predictions
+            </h2>
 
-</p>
+            <p class="section-description">
+                View and manage your waste classification history.
+            </p>
 
-<h2>
+        </div>
 
-Saved Predictions
 
-</h2>
+        <div class="history-actions">
 
-</div>
+            <button
+                id="exportCsvButton"
+                class="secondary-button"
+                type="button"
+            >
+                Export CSV
+            </button>
 
-<div>
+            <button
+                id="clearHistoryButton"
+                class="primary-button"
+                type="button"
+            >
+                Clear History
+            </button>
 
-<button
-id="exportButton"
-class="secondary-button">
+        </div>
 
-Export CSV
+    </section>
 
-</button>
 
-<button
-id="clearButton"
-class="primary-button">
+    <!-- =========================
+         SEARCH
+    ========================= -->
 
-Clear History
+    <section class="history-search-section">
 
-</button>
+        <input
+            type="text"
+            id="historySearch"
+            class="history-search"
+            placeholder="Search prediction..."
+            autocomplete="off"
+        >
 
-</div>
+    </section>
 
-</div>
 
-<input
-type="text"
-id="searchInput"
-placeholder="Search prediction..."
-style="
-width:100%;
-padding:12px;
-margin-bottom:20px;
-border-radius:10px;
-border:1px solid #ccc;
-">
+    <!-- =========================
+         HISTORY CARD
+    ========================= -->
 
-<div class="history-table">
+    <section class="history-card">
 
-<table>
+        <!-- TABLE HEADER -->
 
-<thead>
+        <div class="history-table-header">
 
-<tr>
+            <span>
+                File
+            </span>
 
-<th>File</th>
+            <span>
+                Prediction
+            </span>
 
-<th>Prediction</th>
+            <span>
+                Confidence
+            </span>
 
-<th>Confidence</th>
+            <span>
+                Date
+            </span>
 
-<th>Date</th>
+            <span>
+                Action
+            </span>
 
-<th>Action</th>
+        </div>
 
-</tr>
 
-</thead>
+        <!-- HISTORY DATA -->
 
-<tbody id="historyTable">
+        <div
+            id="historyContainer"
+            class="history-list"
+        >
 
-<tr>
+            <div class="history-loading">
+                Loading prediction history...
+            </div>
 
-<td colspan="5">
+        </div>
 
-Loading...
+    </section>
 
-</td>
 
-</tr>
+    <!-- =========================
+         EMPTY HISTORY
+    ========================= -->
 
-</tbody>
+    <div
+        id="emptyHistory"
+        class="empty-history"
+        style="display: none;"
+    >
 
-</table>
+        <h3>
+            No predictions yet
+        </h3>
 
-</div>
+        <p>
+            Your waste predictions will appear here.
+        </p>
+
+        <a
+            href="predict.html"
+            class="primary-button"
+        >
+            Make Your First Prediction
+        </a>
+
+    </div>
 
 </main>
 
+
+<!-- =========================
+     SCRIPTS
+
+     IMPORTANT:
+     session.js MUST come first
+========================= -->
+
+<script src="js/session.js"></script>
 <script src="js/history.js"></script>
 
 </body>

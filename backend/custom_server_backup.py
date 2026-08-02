@@ -1,0 +1,730 @@
+import json
+from email.parser import BytesParser
+from email.policy import default
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from io import BytesIO
+from pathlib import Path
+from urllib.parse import urlparse
+
+import numpy as np
+import tensorflow as tf
+from PIL import Image, UnidentifiedImageError
+
+from backend.database import (
+    clear_prediction_history,
+    delete_prediction,
+    get_prediction_history,
+    get_statistics,
+    initialize_database,
+    save_prediction,
+)
+from backend.recommendations import RECYCLING_RECOMMENDATIONS
+
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+MODEL_PATH = (
+    PROJECT_ROOT
+    / "model_training"
+    / "best_custom_cnn_finetuned.keras"
+)
+
+HOST = "127.0.0.1"
+PORT = 8000
+
+MAX_FILE_SIZE = 10 * 1024 * 1024
+
+ALLOWED_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+}
+
+CLASS_NAMES_PATH = (
+    PROJECT_ROOT
+    / "model_training"
+    / "class_names_finetuned.json"
+)
+
+with open(CLASS_NAMES_PATH, "r", encoding="utf-8") as file:
+    CLASS_NAMES = json.load(file)
+
+CONFIDENCE_THRESHOLD = 60.0
+
+
+if not MODEL_PATH.exists():
+    raise FileNotFoundError(
+        f"Model was not found: {MODEL_PATH}"
+    )
+
+
+print("Loading custom CNN model...")
+
+model = tf.keras.models.load_model(MODEL_PATH)
+
+print("Custom CNN model loaded successfully.")
+
+initialize_database()
+
+print("SQLite database initialized.")
+
+
+def predict_image(image_bytes: bytes) -> dict:
+    try:
+        image = Image.open(BytesIO(image_bytes))
+        image = image.convert("RGB")
+        image = image.resize((224, 224))
+
+    except UnidentifiedImageError as error:
+        raise ValueError(
+            "The uploaded file is not a valid image."
+        ) from error
+
+    except OSError as error:
+        raise ValueError(
+            "The image could not be opened."
+        ) from error
+
+    image_array = np.array(
+        image,
+        dtype=np.float32,
+    )
+
+    image_array = np.expand_dims(
+        image_array,
+        axis=0,
+    )
+
+    predictions = model.predict(
+        image_array,
+        verbose=0,
+    )[0]
+
+    top_indices = np.argsort(
+        predictions
+    )[::-1][:3]
+
+    top_predictions = []
+
+    for index in top_indices:
+        class_name = CLASS_NAMES[int(index)]
+
+        confidence = (
+            float(predictions[index]) * 100
+        )
+
+        top_predictions.append(
+            {
+                "class": class_name,
+                "confidence": round(
+                    confidence,
+                    2,
+                ),
+            }
+        )
+
+    predicted_index = int(top_indices[0])
+
+    predicted_class = CLASS_NAMES[
+        predicted_index
+    ]
+
+    confidence = (
+        float(predictions[predicted_index])
+        * 100
+    )
+
+    if confidence < CONFIDENCE_THRESHOLD:
+        final_class = "uncertain"
+
+        recommendation = (
+            "The model is not confident about this "
+            "object. Please retake the image with "
+            "better lighting, a plain background, "
+            "and the complete object visible."
+        )
+
+    else:
+        final_class = predicted_class
+
+        recommendation = (
+            RECYCLING_RECOMMENDATIONS[
+                predicted_class
+            ]
+        )
+
+    return {
+        "predicted_class": final_class,
+        "confidence": round(
+            confidence,
+            2,
+        ),
+        "recommendation": recommendation,
+        "top_predictions": top_predictions,
+    }
+
+
+class WasteRequestHandler(
+    BaseHTTPRequestHandler
+):
+
+    def add_cors_headers(self):
+        self.send_header(
+            "Access-Control-Allow-Origin",
+            "*",
+        )
+
+        self.send_header(
+            "Access-Control-Allow-Methods",
+            "GET, POST, DELETE, OPTIONS",
+        )
+
+        self.send_header(
+            "Access-Control-Allow-Headers",
+            "Content-Type",
+        )
+
+    def send_json(
+        self,
+        status_code: int,
+        data: dict,
+    ):
+        response_body = json.dumps(
+            data,
+            indent=2,
+        ).encode("utf-8")
+
+        self.send_response(status_code)
+
+        self.send_header(
+            "Content-Type",
+            "application/json; charset=utf-8",
+        )
+
+        self.send_header(
+            "Content-Length",
+            str(len(response_body)),
+        )
+
+        self.add_cors_headers()
+
+        self.end_headers()
+
+        self.wfile.write(response_body)
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+
+        self.add_cors_headers()
+
+        self.end_headers()
+
+    def do_GET(self):
+        print("==========")
+        print("PATH RECEIVED:", repr(urlparse(self.path).path))
+        path = urlparse(self.path).path
+
+        if path == "/":
+            self.send_json(
+                200,
+                {
+                    "message": (
+                        "Smart Waste Classifier "
+                        "custom backend is running."
+                    )
+                },
+            )
+
+        elif path == "/health":
+            self.send_json(
+                200,
+                {
+                    "status": "healthy",
+                    "model": (
+                        "best_custom_cnn.keras"
+                    ),
+                    "database": "connected",
+                },
+            )
+
+        elif path == "/history":
+            try:
+                history = (
+                    get_prediction_history()
+                )
+
+                self.send_json(
+                    200,
+                    {
+                        "history": history,
+                    },
+                )
+
+            except Exception as error:
+                print(
+                    "History error:",
+                    error,
+                )
+
+                self.send_json(
+                    500,
+                    {
+                        "error": (
+                            "Unable to load "
+                            "prediction history."
+                        )
+                    },
+                )
+
+        elif path == "/statistics":
+            try:
+                statistics = get_statistics()
+
+                self.send_json(
+                    200,
+                    statistics,
+                )
+
+            except Exception as error:
+                print(
+                    "Statistics error:",
+                    error,
+                )
+
+                self.send_json(
+                    500,
+                    {
+                        "error": (
+                            "Unable to load "
+                            "statistics."
+                        )
+                    },
+                )
+
+        else:
+            self.send_json(
+                404,
+                {
+                    "error": "Route not found.",
+                },
+            )
+
+    def do_POST(self):
+        path = urlparse(self.path).path
+
+        if path != "/predict":
+            self.send_json(
+                404,
+                {
+                    "error": "Route not found.",
+                },
+            )
+
+            return
+
+        content_type = self.headers.get(
+            "Content-Type",
+            "",
+        )
+
+        content_length_header = (
+            self.headers.get(
+                "Content-Length"
+            )
+        )
+
+        if not content_length_header:
+            self.send_json(
+                411,
+                {
+                    "error": (
+                        "Content-Length header "
+                        "is required."
+                    )
+                },
+            )
+
+            return
+
+        try:
+            content_length = int(
+                content_length_header
+            )
+
+        except ValueError:
+            self.send_json(
+                400,
+                {
+                    "error": (
+                        "Invalid Content-Length "
+                        "header."
+                    )
+                },
+            )
+
+            return
+
+        if content_length <= 0:
+            self.send_json(
+                400,
+                {
+                    "error": (
+                        "The request body is empty."
+                    )
+                },
+            )
+
+            return
+
+        if content_length > MAX_FILE_SIZE:
+            self.send_json(
+                413,
+                {
+                    "error": (
+                        "The uploaded file is too "
+                        "large. Maximum size is "
+                        "10 MB."
+                    )
+                },
+            )
+
+            return
+
+        if not content_type.startswith(
+            "multipart/form-data"
+        ):
+            self.send_json(
+                400,
+                {
+                    "error": (
+                        "The request must use "
+                        "multipart/form-data."
+                    )
+                },
+            )
+
+            return
+
+        try:
+            request_body = self.rfile.read(
+                content_length
+            )
+
+            raw_message = (
+                b"Content-Type: "
+                + content_type.encode("utf-8")
+                + b"\r\n"
+                + b"MIME-Version: 1.0\r\n\r\n"
+                + request_body
+            )
+
+            message = BytesParser(
+                policy=default
+            ).parsebytes(raw_message)
+
+            uploaded_file = None
+            file_name = None
+            file_type = None
+
+            for part in message.iter_parts():
+                content_disposition = (
+                    part.get(
+                        "Content-Disposition",
+                        "",
+                    )
+                )
+
+                field_name = (
+                    part.get_param(
+                        "name",
+                        header=(
+                            "Content-Disposition"
+                        ),
+                    )
+                )
+
+                if (
+                    "form-data"
+                    in content_disposition
+                    and field_name == "file"
+                ):
+                    uploaded_file = (
+                        part.get_payload(
+                            decode=True
+                        )
+                    )
+
+                    file_name = (
+                        part.get_filename()
+                        or "uploaded_image"
+                    )
+
+                    file_type = (
+                        part.get_content_type()
+                    )
+
+                    break
+
+            if uploaded_file is None:
+                self.send_json(
+                    400,
+                    {
+                        "error": (
+                            "No image was uploaded. "
+                            "Use the form field name "
+                            "'file'."
+                        )
+                    },
+                )
+
+                return
+
+            if not uploaded_file:
+                self.send_json(
+                    400,
+                    {
+                        "error": (
+                            "The uploaded image "
+                            "is empty."
+                        )
+                    },
+                )
+
+                return
+
+            if len(uploaded_file) > MAX_FILE_SIZE:
+                self.send_json(
+                    413,
+                    {
+                        "error": (
+                            "The uploaded file is "
+                            "too large. Maximum "
+                            "size is 10 MB."
+                        )
+                    },
+                )
+
+                return
+
+            if file_type not in ALLOWED_TYPES:
+                self.send_json(
+                    415,
+                    {
+                        "error": (
+                            "Unsupported image type. "
+                            "Upload JPG, PNG or WEBP."
+                        )
+                    },
+                )
+
+                return
+
+            result = predict_image(
+                uploaded_file
+            )
+
+            prediction_id = save_prediction(
+                file_name=file_name,
+                predicted_class=result[
+                    "predicted_class"
+                ],
+                confidence=result[
+                    "confidence"
+                ],
+                recommendation=result[
+                    "recommendation"
+                ],
+                top_predictions=result[
+                    "top_predictions"
+                ],
+            )
+
+            result["id"] = prediction_id
+            result["file_name"] = file_name
+
+            self.send_json(
+                200,
+                result,
+            )
+
+        except ValueError as error:
+            self.send_json(
+                400,
+                {
+                    "error": str(error),
+                },
+            )
+
+        except Exception as error:
+            print(
+                "Prediction error:",
+                error,
+            )
+
+            self.send_json(
+                500,
+                {
+                    "error": (
+                        "An internal server error "
+                        "occurred while processing "
+                        "the image."
+                    )
+                },
+            )
+
+    def do_DELETE(self):
+        path = urlparse(self.path).path
+
+        if path == "/history":
+            try:
+                clear_prediction_history()
+
+                self.send_json(
+                    200,
+                    {
+                        "message": (
+                            "Prediction history "
+                            "cleared successfully."
+                        )
+                    },
+                )
+
+            except Exception as error:
+                print(
+                    "Clear history error:",
+                    error,
+                )
+
+                self.send_json(
+                    500,
+                    {
+                        "error": (
+                            "Unable to clear "
+                            "prediction history."
+                        )
+                    },
+                )
+
+            return
+
+        if path.startswith("/history/"):
+            prediction_id_text = path.replace(
+                "/history/",
+                "",
+                1,
+            )
+
+            try:
+                prediction_id = int(
+                    prediction_id_text
+                )
+
+            except ValueError:
+                self.send_json(
+                    400,
+                    {
+                        "error": (
+                            "Invalid prediction ID."
+                        )
+                    },
+                )
+
+                return
+
+            try:
+                deleted = delete_prediction(
+                    prediction_id
+                )
+
+                if deleted:
+                    self.send_json(
+                        200,
+                        {
+                            "message": (
+                                "Prediction deleted "
+                                "successfully."
+                            )
+                        },
+                    )
+
+                else:
+                    self.send_json(
+                        404,
+                        {
+                            "error": (
+                                "Prediction record "
+                                "was not found."
+                            )
+                        },
+                    )
+
+            except Exception as error:
+                print(
+                    "Delete prediction error:",
+                    error,
+                )
+
+                self.send_json(
+                    500,
+                    {
+                        "error": (
+                            "Unable to delete the "
+                            "prediction record."
+                        )
+                    },
+                )
+
+            return
+
+        self.send_json(
+            404,
+            {
+                "error": "Route not found.",
+            },
+        )
+
+    def log_message(
+        self,
+        format_string,
+        *args,
+    ):
+        print(
+            f"[Backend] "
+            f"{self.address_string()} - "
+            f"{format_string % args}"
+        )
+
+
+def run_server():
+    server = ThreadingHTTPServer(
+        (HOST, PORT),
+        WasteRequestHandler,
+    )
+
+    print(
+        f"Custom backend running at "
+        f"http://{HOST}:{PORT}"
+    )
+
+    print(
+        "Press Ctrl+C to stop the backend."
+    )
+
+    try:
+        server.serve_forever()
+
+    except KeyboardInterrupt:
+        print(
+            "\nStopping custom backend..."
+        )
+
+    finally:
+        server.server_close()
+
+        print(
+            "Custom backend stopped."
+        )
+
+
+if __name__ == "__main__":
+    run_server()

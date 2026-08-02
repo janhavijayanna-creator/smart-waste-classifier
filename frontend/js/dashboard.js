@@ -23,8 +23,11 @@ async function loadDashboard() {
 async function loadStatistics() {
     try {
         const response = await fetch(
-            `${API_BASE}/statistics`
-        );
+    `${API_BASE}/statistics`,
+    {
+        headers: getAuthHeaders()
+    }
+);
 
         if (!response.ok) {
             throw new Error(
@@ -118,29 +121,40 @@ function updateStatisticCards(statistics) {
             statistics.class_counts || {}
         ).length;
 
-    setText(
-        "totalScans",
-        totalScans
-    );
+   animateNumber(
+    "totalScans",
+    totalScans,
+    {
+        duration: 900,
+        decimals: 0
+    }
+);
 
-    setText(
-        "averageConfidence",
-        `${Number(
-            averageConfidence
-        ).toFixed(2)}%`
-    );
+animateNumber(
+    "averageConfidence",
+    averageConfidence,
+    {
+        duration: 1000,
+        decimals: 2,
+        suffix: "%"
+    }
+);
 
-    setText(
-        "mostDetectedClass",
-        formatClassName(
-            mostDetectedClass
-        )
-    );
+setText(
+    "mostDetectedClass",
+    formatClassName(
+        mostDetectedClass
+    )
+);
 
-    setText(
-        "wasteCategories",
-        wasteCategories
-    );
+animateNumber(
+    "wasteCategories",
+    wasteCategories,
+    {
+        duration: 850,
+        decimals: 0
+    }
+);
 }
 
 
@@ -620,19 +634,31 @@ if (refreshButton) {
     refreshButton.addEventListener(
         "click",
         async () => {
+            const refreshIcon =
+                document.getElementById(
+                    "refreshIcon"
+                );
+
             refreshButton.disabled =
                 true;
 
-            refreshButton.textContent =
-                "Refreshing...";
+            refreshButton.classList.add(
+                "refreshing"
+            );
+
+            if (refreshIcon) {
+                refreshIcon.textContent =
+                    "↻";
+            }
 
             await loadDashboard();
 
             refreshButton.disabled =
                 false;
 
-            refreshButton.textContent =
-                "Refresh";
+            refreshButton.classList.remove(
+                "refreshing"
+            );
         }
     );
 }
@@ -684,3 +710,70 @@ document.addEventListener(
     "DOMContentLoaded",
     loadDashboard
 );
+function animateNumber(
+    elementId,
+    finalValue,
+    options = {}
+) {
+    const element =
+        document.getElementById(
+            elementId
+        );
+
+    if (!element) {
+        return;
+    }
+
+    const duration =
+        options.duration || 900;
+
+    const decimals =
+        options.decimals || 0;
+
+    const suffix =
+        options.suffix || "";
+
+    const startTime =
+        performance.now();
+
+    const numericValue =
+        Number(finalValue) || 0;
+
+    function updateNumber(
+        currentTime
+    ) {
+        const elapsed =
+            currentTime - startTime;
+
+        const progress =
+            Math.min(
+                elapsed / duration,
+                1
+            );
+
+        const easedProgress =
+            1 - Math.pow(
+                1 - progress,
+                3
+            );
+
+        const currentValue =
+            numericValue *
+            easedProgress;
+
+        element.textContent =
+            `${currentValue.toFixed(
+                decimals
+            )}${suffix}`;
+
+        if (progress < 1) {
+            requestAnimationFrame(
+                updateNumber
+            );
+        }
+    }
+
+    requestAnimationFrame(
+        updateNumber
+    );
+}
