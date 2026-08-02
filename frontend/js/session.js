@@ -1,4 +1,4 @@
-const AUTH_API_BASE = "http://127.0.0.1:8000";
+const AUTH_API_BASE = "https://web-production-f1235.up.railway.app";
 
 function getAuthToken() {
     return localStorage.getItem("authToken");

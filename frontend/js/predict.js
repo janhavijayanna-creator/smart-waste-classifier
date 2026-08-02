@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://web-production-f1235.up.railway.app";
 
 
 /* =========================================================
