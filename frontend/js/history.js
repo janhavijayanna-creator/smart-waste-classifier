@@ -1,4 +1,4 @@
-const API_URL = "https://web-production-f1235.up.railway.app";
+const API_URL = "https://smart-waste-classifier-production-580f.up.railway.app";
 
 const historyContainer =
     document.getElementById("historyContainer");

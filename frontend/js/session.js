@@ -1,4 +1,4 @@
-const AUTH_API_BASE = "https://web-production-f1235.up.railway.app";
+const AUTH_API_BASE = "https://smart-waste-classifier-production-580f.up.railway.app";
 
 function getAuthToken() {
     return localStorage.getItem("authToken");
