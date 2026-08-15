@@ -136,16 +136,16 @@ def get_statistics():
     connection = get_connection()
 
     try:
-        valid_classes = [
-            "broken_toys",
-            "cardboard",
-            "glass",
-            "human",
-            "metal",
-            "paper",
-            "plastic",
-            "trash",
-        ]
+        [
+    "broken_toys",
+    "cardboard",
+    "e_waste",
+    "glass",
+    "metal",
+    "organic",
+    "paper",
+    "plastic",
+]
 
         total_scans = connection.execute(
             """

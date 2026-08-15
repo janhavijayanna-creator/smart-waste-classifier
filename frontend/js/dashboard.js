@@ -177,17 +177,17 @@ function updateClassCounts(statistics) {
             statistics.uncertain_count || 0
         );
 
-    const categories = [
-        "broken_toys",
-        "cardboard",
-        "glass",
-        "human",
-        "metal",
-        "paper",
-        "plastic",
-        "trash",
-        "uncertain"
-    ];
+    const categoryLabels = [
+    "Broken Toys",
+    "Cardboard",
+    "E-Waste",
+    "Glass",
+    "Metal",
+    "Organic",
+    "Paper",
+    "Plastic",
+    "Uncertain"
+];
 
     const classCountsElement =
         document.getElementById(
@@ -257,17 +257,17 @@ function createCharts(statistics) {
             statistics.uncertain_count || 0
         );
 
-    const categories = [
-        "broken_toys",
-        "cardboard",
-        "glass",
-        "human",
-        "metal",
-        "paper",
-        "plastic",
-        "trash",
-        "uncertain"
-    ];
+    const categoryLabels = [
+    "Broken Toys",
+    "Cardboard",
+    "E-Waste",
+    "Glass",
+    "Metal",
+    "Organic",
+    "Paper",
+    "Plastic",
+    "Uncertain"
+];
 
     const labels =
         categories.map(
