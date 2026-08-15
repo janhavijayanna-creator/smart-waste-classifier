@@ -38,14 +38,14 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 MODEL_PATH = (
     PROJECT_ROOT
-    / "model_training"
-    / "best_custom_cnn_finetuned.keras"
+    / "backend"
+    / "best_final_8class_finetuned.keras"
 )
 
 CLASS_NAMES_PATH = (
     PROJECT_ROOT
     / "model_training"
-    / "class_names_finetuned.json"
+    / "class_names_final_8.json"
 )
 
 
@@ -488,10 +488,7 @@ class WasteRequestHandler(
                 200,
                 {
                     "status": "healthy",
-                    "model": (
-                        "best_custom_cnn_"
-                        "finetuned.keras"
-                    ),
+                    "model": "best_final_8class_finetuned.keras",
                     "database": "connected",
                     "authentication": "enabled",
                     "classes": len(

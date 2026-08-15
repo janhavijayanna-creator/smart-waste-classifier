@@ -212,6 +212,10 @@ if (registerForm) {
 
                 const data =
                     await response.json();
+                    console.log(
+    "LOGIN RESPONSE:",
+    data
+);
 
                 if (!response.ok) {
                     throw new Error(
@@ -260,6 +264,24 @@ function saveSession(
     token,
     user
 ) {
+    console.log(
+        "TOKEN RECEIVED:",
+        token
+    );
+
+    console.log(
+        "USER RECEIVED:",
+        user
+    );
+
+    if (!token) {
+        console.error(
+            "No token received from backend!"
+        );
+
+        return;
+    }
+
     localStorage.setItem(
         "authToken",
         token
@@ -269,13 +291,11 @@ function saveSession(
         "authUser",
         JSON.stringify(user)
     );
-}
-console.log(
-    "Saved token:",
-    localStorage.getItem("authToken")
-);
 
-console.log(
-    "Saved user:",
-    localStorage.getItem("authUser")
-);
+    console.log(
+        "TOKEN SAVED:",
+        localStorage.getItem(
+            "authToken"
+        )
+    );
+}

@@ -1,4 +1,5 @@
-const API_URL = "https://smart-waste-classifier-production-580f.up.railway.app";
+const API_URL =
+    "https://smart-waste-classifier-production-580f.up.railway.app";
 
 
 /* =========================================================
@@ -794,18 +795,17 @@ function getResultIcon(value) {
     const icons = {
         broken_toys: "🧸",
         cardboard: "📦",
+        e_waste: "🔌",
         glass: "🫙",
-        human: "🧍",
         metal: "🥫",
+        organic: "🍌",
         paper: "📄",
         plastic: "🧴",
-        trash: "🗑️",
         uncertain: "❓"
     };
 
     return icons[value] || "♻";
 }
-
 
 /* =========================================================
    FORMAT CLASS NAME

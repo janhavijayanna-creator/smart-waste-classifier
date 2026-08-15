@@ -18,16 +18,19 @@ ALLOWED_TYPES = [
 ]
 
 MODEL_PATH = (
-    Path("model_training")
-    / "best_custom_cnn.keras"
+    Path("backend")
+    / "best_final_8class_finetuned.keras"
 )
+
 CLASS_NAMES = [
+    "broken_toys",
     "cardboard",
+    "e_waste",
     "glass",
     "metal",
+    "organic",
     "paper",
     "plastic",
-    "trash",
 ]
 
 

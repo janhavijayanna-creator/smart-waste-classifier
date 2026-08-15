@@ -1,40 +1,38 @@
 RECYCLING_RECOMMENDATIONS = {
     "broken_toys": (
-        "If the toy is made of plastic or metal, separate recyclable parts if possible. "
-        "Electronic toys should be taken to an e-waste collection center."
+        "Check whether the toy can be repaired or donated. "
+        "If not, separate plastic, metal, or electronic parts where possible."
     ),
 
     "cardboard": (
-        "Flatten the cardboard, keep it dry, remove tape or food residue, "
-        "and place it in the paper recycling bin."
+        "Flatten the cardboard and keep it clean and dry. "
+        "Place it in the paper/cardboard recycling stream."
+    ),
+
+    "e_waste": (
+        "Do not place e-waste in normal household garbage. "
+        "Take it to an authorized e-waste collection or recycling center."
     ),
 
     "glass": (
-        "Rinse the glass item, remove caps or lids, and place it in the "
-        "glass recycling bin. Do not include broken mirrors or ceramics."
-    ),
-
-    "human": (
-        "This image does not appear to contain waste. Please upload an image of a waste item."
+        "Rinse the glass item if needed and place it in the designated glass recycling bin. "
+        "Handle broken glass carefully."
     ),
 
     "metal": (
-        "Rinse the metal item, remove food residue, and place it in the "
-        "metal recycling bin. Sharp edges should be handled carefully."
+        "Clean the metal item and place it in the appropriate metal or dry-waste recycling stream."
+    ),
+
+    "organic": (
+        "Place organic waste in a compost or wet-waste bin. "
+        "Avoid mixing it with plastic, glass, or other dry waste."
     ),
 
     "paper": (
-        "Keep the paper clean and dry, remove plastic coverings or clips, "
-        "and place it in the paper recycling bin."
+        "Keep the paper clean and dry and place it in the paper recycling bin."
     ),
 
     "plastic": (
-        "Check the recycling symbol, rinse the item, remove food residue, "
-        "and place recyclable plastic in the correct recycling bin."
-    ),
-
-    "trash": (
-        "This item may not be recyclable. Place it in the general waste bin "
-        "unless your local waste facility provides special disposal instructions."
+        "Clean the plastic item and place it in the appropriate dry-waste or plastic recycling stream."
     ),
 }

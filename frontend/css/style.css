@@ -2522,26 +2522,32 @@ body {
 .preview-wrapper {
     position: relative;
 
-    border-radius: 18px;
+    min-height: 350px;
 
-    overflow: hidden;
-
-    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     background: #f2f7f4;
+
+    border-radius: 18px;
+    overflow: hidden;
 }
 
 #previewImage {
     display: block;
 
-    width: 100%;
-    height: 350px;
+    width: auto;
+    max-width: 100%;
+
+    height: auto;
+    max-height: 420px;
 
     object-fit: contain;
 
-    border-radius: 18px;
+    margin: 0 auto;
 
-    margin-bottom: 0;
+    border-radius: 18px;
 }
 
 .preview-overlay {
@@ -2821,8 +2827,22 @@ body {
     }
 
     #previewImage {
-        height: 280px;
-    }
+    display: block;
+
+    width: 100%;
+    max-width: 100%;
+
+    height: auto;
+    max-height: 420px;
+
+    object-fit: contain;
+
+    border-radius: 18px;
+
+    margin: 0 auto;
+
+    image-rendering: auto;
+}
 
     .result-card-header {
         align-items: flex-start;
