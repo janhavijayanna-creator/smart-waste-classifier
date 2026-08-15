@@ -15,9 +15,7 @@ __pycache__/
 .env
 
 *.keras
-*.h5
-
-!model_training/best_custom_cnn_finetuned.keras
+!backend/best_final_8class_finetuned.keras
 
 # Dataset
 dataset/
