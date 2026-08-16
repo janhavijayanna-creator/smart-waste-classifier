@@ -270,12 +270,20 @@ function createCharts(statistics) {
 ];
 
     const labels =
-        categories.map(
-            formatClassName
-        );
+    categoryLabels;
 
-    const values =
-        categories.map(category =>
+const values =
+    [
+        "broken_toys",
+        "cardboard",
+        "e_waste",
+        "glass",
+        "metal",
+        "organic",
+        "paper",
+        "plastic",
+        "uncertain"
+    ].map(category =>
             Number(
                 categoryCounts[category] || 0
             )
