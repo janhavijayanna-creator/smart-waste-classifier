@@ -200,7 +200,16 @@ function updateClassCounts(statistics) {
 
     classCountsElement.innerHTML = "";
 
-    categories.forEach(category => {
+    [
+    "broken_toys",
+    "cardboard",
+    "e_waste",
+    "glass",
+    "metal",
+    "organic",
+    "paper",
+    "plastic"
+].forEach(category => {
         const count =
             Number(
                 categoryCounts[category] || 0
