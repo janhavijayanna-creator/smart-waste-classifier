@@ -1,153 +1,261 @@
-# ♻️ AI-Based Smart Waste Classification & Recycling Recommendation System
+♻️ AI-Based Smart Waste Classification & Recycling Recommendation System
 
-An AI-powered web application that classifies waste using a Custom CNN model and provides recycling recommendations to encourage proper waste disposal.
+An AI-powered web application that classifies waste using a fine-tuned 8-class deep-learning model and provides recycling recommendations to encourage proper waste segregation and disposal.
 
----
+📌 Project Overview
 
-## 📌 Project Overview
+The Smart Waste Classifier allows a user to upload a waste image or capture one using a webcam. The image is sent to the deployed Python backend, processed by the trained Keras model, and returned with the predicted waste category, confidence score, top predictions, and a recycling recommendation.
 
-This project uses Deep Learning to classify waste into different categories and suggest the appropriate recycling method.
+The final application also includes authentication, user-specific prediction history, dashboard analytics, SQLite storage, low-confidence handling, and public deployment on Railway.
 
-The system includes:
+🚀 Features
 
-- AI Waste Classification
-- Recycling Recommendations
-- Webcam Capture
-- Image Upload
-- Dashboard Analytics
-- Prediction History
-- SQLite Database
+📷 Webcam image capture
 
----
+📁 Image upload and drag-and-drop input
 
-## 🚀 Features
+🤖 AI-based waste classification
 
-- 📷 Webcam Image Capture
-- 📁 Upload Waste Images
-- 🤖 AI-based Waste Classification
-- 📊 Dashboard with Statistics
-- 📈 Prediction Charts
-- 📝 Prediction History
-- ♻️ Recycling Recommendations
-- 💾 SQLite Database Storage
+🎯 Confidence score and top predictions
 
----
+⚠️ Uncertain result for low-confidence predictions
 
-## 🧠 AI Model
+♻️ Recycling recommendations
 
-Model Used:
+🔐 User registration and login
 
-**Custom CNN**
+📝 User-specific prediction history
 
-Final Accuracy:
+📊 Dashboard statistics and category counts
 
-**82.20%**
+📈 Waste distribution and category charts
 
-Number of Classes:
+💾 SQLite database storage
 
-- Broken Toys
-- Cardboard
-- Glass
-- Human
-- Metal
-- Paper
-- Plastic
-- Trash
+☁️ Frontend and backend deployed on Railway
 
----
+🧠 AI Model
 
-## 🛠 Technologies Used
+Deployed model: best_final_8class_finetuned.keras
 
-### Frontend
+Model type: Fine-tuned deep-learning image classification model
 
-- HTML5
-- CSS3
-- JavaScript
+Input: 224 × 224 RGB image
 
-### Backend
+Best validation accuracy: 94.95%
 
-- Python
-- HTTP Server
-- SQLite
+94.95% is the best validation accuracy recorded during fine-tuning. It is not presented as a separately measured independent test-set accuracy.
 
-### AI
+Final 8 Waste Classes
 
-- TensorFlow
-- Keras
-- NumPy
-- OpenCV
+Broken Toys
 
----
+Cardboard
 
-## 📂 Project Structure
+E-Waste
 
-```
-smart-waste-classifier
-│
-├── backend
-├── frontend
-├── model_training
+Glass
+
+Metal
+
+Organic
+
+Paper
+
+Plastic
+
+If the highest prediction confidence is below the configured threshold, the application returns Uncertain rather than forcing the image into one of the eight trained classes.
+
+🛠 Technologies Used
+
+Frontend
+
+HTML5
+
+CSS3
+
+JavaScript
+
+Chart.js
+
+Backend
+
+Python
+
+HTTP-based backend/API
+
+SQLite
+
+AI / Image Processing
+
+TensorFlow
+
+Keras
+
+NumPy
+
+Pillow
+
+Development & Deployment
+
+Git
+
+GitHub
+
+Railway
+
+🔄 Application Flow
+
+User registers or logs in.
+
+User opens the prediction page.
+
+An image is uploaded, dropped, or captured using the camera.
+
+The frontend sends the image and authentication token to the backend.
+
+The backend validates the session and preprocesses the image.
+
+The final fine-tuned model performs inference.
+
+The backend returns the class, confidence, top predictions, and recycling recommendation.
+
+The prediction is stored in the authenticated user's history.
+
+Dashboard statistics are calculated from that user's prediction records.
+
+📂 Project Structure
+
+smart-waste-classifier/
+├── backend/          # Authentication, prediction, history, statistics and database logic
+├── frontend/         # HTML, CSS and JavaScript user interface
+├── model_training/   # Training/fine-tuning scripts and class information
 └── .gitignore
-```
 
----
+⚙️ Run Locally
 
-## ⚙️ How to Run
+1. Start the backend
 
-### Backend
+From the project root:
 
-```bash
 python -m backend.custom_server
-```
 
-### Frontend
+The local backend runs at:
 
-```bash
+http://127.0.0.1:8000
+
+You can verify it using:
+
+http://127.0.0.1:8000/health
+
+2. Start the frontend
+
+Open another terminal:
+
 cd frontend
-python -m http.server 5500
-```
+python -m http.server 3000
 
-Open:
+Then open:
 
-```
-http://127.0.0.1:5500
-```
+http://127.0.0.1:3000
 
----
+🌐 Live Deployment
 
-## 📊 Model Performance
+The project is deployed on Railway as separate frontend and backend services.
 
-| Metric | Value |
-|---------|-------|
-| Accuracy | **82.20%** |
-| Classes | 8 |
-| Model | Custom CNN |
+Live website:
 
----
+https://frontend-production-5c347.up.railway.app
 
-## 🔮 Future Improvements
+Backend health/API service:
 
-- Mobile Application
-- Cloud Deployment
-- Real-time Video Detection
-- Voice Assistant
-- Multi-language Support
-- IoT Smart Bin Integration
+https://smart-waste-classifier-production-580f.up.railway.app/health
 
----
+The deployed website works independently of the local VS Code development servers.
 
-## 👩‍💻 Developer
+📊 Final Model Performance
 
-**Janhavi Jayanna**
+Metric
 
+Value
+
+Best Validation Accuracy
+
+94.95%
+
+Trained Waste Classes
+
+8
+
+Input Size
+
+224 × 224 RGB
+
+Low-Confidence Handling
+
+Uncertain
+
+Deployment
+
+Railway
+
+🔌 Main Backend Endpoints
+
+Endpoint
+
+Purpose
+
+/health
+
+Checks backend, model and database availability
+
+/register
+
+Creates a user account
+
+/login
+
+Authenticates an existing user
+
+/predict
+
+Classifies an uploaded image
+
+/history
+
+Returns/manages user-specific prediction history
+
+/statistics
+
+Supplies user-specific dashboard analytics
+
+🔮 Future Improvements
+
+Collect more balanced real-world waste images
+
+Evaluate the model on a separate independent test set with precision, recall, F1-score and confusion matrix
+
+Add hazardous waste, textiles, batteries and other waste categories
+
+Add password reset and email verification
+
+Use a managed production database for larger deployments
+
+Provide city-specific recycling rules
+
+Add multilingual support
+
+Optimize inference and hosting cost
+
+Integrate the classifier with an IoT smart-bin or automated sorting system
+
+👩‍💻 Developer
+
+Janhavi Jayanna
 Computer Science Engineering Student
 
-GitHub:
+GitHub: https://github.com/janhavijayanna-creator
 
-https://github.com/janhavijayanna-creator
+⭐ Support
 
----
-
-## ⭐ If you like this project
-
-Please consider giving this repository a ⭐
+If you find this project useful, consider giving the repository a ⭐.
